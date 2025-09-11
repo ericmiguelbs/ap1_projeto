@@ -6,14 +6,13 @@ class ProfessorController:
     @staticmethod
     def listar():
         professores = Professor.query.all()
-        for p in professores:
-            return jsonify({
+        return jsonify([{
                 'id':p.id,
                 'nome':p.nome,
                 'idade': p.idade,
                 'materia': p.materia,
                 'observacoes': p.observacoes
-            })
+            } for p in professores])
         
     @staticmethod
     def criar():
