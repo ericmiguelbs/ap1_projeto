@@ -1,4 +1,4 @@
-from models import db
+from models.db import db
 
 class Turma(db.Model):
     __tablename__ = 'turma'
@@ -9,7 +9,7 @@ class Turma(db.Model):
     ativo = db.Column(db.Boolean, nullable=False, default=True)
 
     # Relacionamento com a tabela Professor
-    professor = db.relationship('Professor', back_populates='turmas')
+    professor = db.relationship('Professor', backref='turmas')
 
     # Relacionamento com a tabela Aluno
     alunos = db.relationship('Aluno', back_populates='turma', lazy=True)
