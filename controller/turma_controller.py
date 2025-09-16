@@ -3,8 +3,31 @@ from models.db import db
 from models.turma import Turma
 
 class TurmaController:
+    
     @staticmethod
     def listar():
+        """
+        Lista todas as turmas cadastradas.
+        ---
+        tags:
+          - Turma
+        responses:
+          200:
+            description: Uma lista de turmas.
+            schema:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  descricao:
+                    type: string
+                  professor_id:
+                    type: integer
+                  ativo:
+                    type: boolean
+        """
         turmas = Turma.query.all()
         return jsonify([
             {
@@ -17,6 +40,40 @@ class TurmaController:
 
     @staticmethod
     def criar():
+        """
+        Cria uma nova turma.
+        ---
+        tags:
+          - Turma
+        parameters:
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                descricao:
+                  type: string
+                  description: Descrição da turma.
+                professor_id:
+                  type: integer
+                  description: ID do professor responsável pela turma.
+                ativo:
+                  type: boolean
+                  description: Se a turma está ativa ou não.
+              example:
+                descricao: "Turma de T.I."
+                professor_id: 1
+                ativo: true
+        responses:
+          200:
+            description: Turma criada com sucesso.
+            schema:
+              type: object
+              properties:
+                mensagem:
+                  type: string
+        """
         data = request.get_json()
         nova_turma = Turma(
             descricao=data['descricao'],
@@ -29,6 +86,35 @@ class TurmaController:
 
     @staticmethod
     def atualizar(id):
+        """
+        Atualiza uma turma existente pelo ID.
+        ---
+        tags:
+          - Turma
+        parameters:
+          - name: id
+            in: path
+            type: integer
+            required: true
+            description: ID da turma a ser atualizada.
+          - name: body
+            in: body
+            required: true
+            schema:
+              type: object
+              properties:
+                descricao:
+                  type: string
+                professor_id:
+                  type: integer
+                ativo:
+                  type: boolean
+        responses:
+          200:
+            description: Turma atualizada com sucesso.
+          404:
+            description: Turma não encontrada.
+        """
         turma = Turma.query.get_or_404(id)
         data = request.get_json()
 
@@ -41,6 +127,28 @@ class TurmaController:
 
     @staticmethod
     def deletar(id):
+        """
+        Deleta uma turma pelo ID.
+        ---
+        tags:
+          - Turma
+        parameters:
+          - name: id
+            in: path
+            type: integer
+            required: true
+            description: ID da turma a ser deletada.
+        responses:
+          200:
+            description: Turma deletada com sucesso.
+            schema:
+              type: object
+              properties:
+                mensagem:
+                  type: string
+          404:
+            description: Turma não encontrada.
+        """
         turma = Turma.query.get_or_404(id)
         db.session.delete(turma)
         db.session.commit()

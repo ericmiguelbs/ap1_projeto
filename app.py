@@ -5,7 +5,7 @@ from models.professor import Professor
 from flask import Flask
 from config import Config
 from controller.turma_controller import TurmaController
-
+from flasgger import Swagger
 from controller.aluno_controller import AlunoController
 from controller.professor_controller import ProfessorController
 
@@ -14,6 +14,8 @@ from models.db import db
 app = Flask(__name__)
 app.config.from_object(Config)
 db.init_app(app)
+swagger = Swagger(app)
+
 with app.app_context():
     db.create_all()
 
