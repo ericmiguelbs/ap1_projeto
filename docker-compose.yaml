@@ -1,3 +1,4 @@
+# docker-compose.yml CORRIGIDO
 services:
   api:
     build: .
@@ -6,8 +7,9 @@ services:
       - "5000:5000"
     volumes:
       - .:/app
-      - ./database.db:/instance/meubanco.db
+      - ./instance:/app/instance
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
-    command: flask run --host=0.0.0.0
+      # FLASK_RUN_HOST é definido pelo CMD do flask, não precisa mais aqui
+      # mas o comando flask run --host=0.0.0.0 que é usado no CMD vai fazer o trabalho

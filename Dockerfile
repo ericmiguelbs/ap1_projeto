@@ -1,23 +1,14 @@
-# Usar imagem oficial do Python
+# Dockerfile CORRIGIDO
 FROM python:3.11-slim
-
-# Diretório de trabalho dentro do container
 WORKDIR /app
 
-# Copiar arquivo de dependências e instalar
+# Copia o arquivo de dependências e instala
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar toda a aplicação
+# Copia TODO o código da pasta atual para o workdir /app
+# (O .dockerignore vai garantir que os arquivos desnecessários não sejam copiados)
 COPY . .
 
-# Variáveis de ambiente Flask
-ENV FLASK_APP=app.py
-ENV FLASK_RUN_HOST=0.0.0.0
-ENV FLASK_ENV=development
-
-# Expor a porta 5000
 EXPOSE 5000
-
-# Comando para rodar a aplicação
-CMD ["flask", "run"]
+CMD ["flask", "run", "--host=0.0.0.0"]

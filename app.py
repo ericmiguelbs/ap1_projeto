@@ -39,4 +39,4 @@ app.add_url_rule('/atualiza_turmas/<int:id>', view_func=TurmaController.atualiza
 app.add_url_rule('/tdeleta_turmas/<int:id>', view_func=TurmaController.deletar, methods=['DELETE'], endpoint='deleta_turmas')
 
 if __name__ == '__main__':
-    app.run(debug = True)
+    app.run(host= '0.0.0.0', debug = True)

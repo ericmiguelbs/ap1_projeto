@@ -1,0 +1,8 @@
+# .dockerignore
+Dockerfile
+docker-compose.yml
+.dockerignore
+.vscode/
+__pycache__/
+*.pyc
+instance/
