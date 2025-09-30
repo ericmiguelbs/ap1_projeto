@@ -1,114 +1,42 @@
 from flask import request, jsonify
 from models.db import db
 from models.aluno import Aluno
-
+from datetime import datetime
 
 class AlunoController:
 
     @staticmethod
     def listar():
-        """
-        Lista todos os alunos cadastrados.
-        ---
-        tags:
-          - Aluno
-        responses:
-          200:
-            description: Uma lista de alunos.
-            schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  nome:
-                    type: string
-                  idade:
-                    type: integer
-                  turma_id:
-                    type: integer
-                  data_nascimento:
-                    type: string
-                    format: date
-                  nota_primeiro_semestre:
-                    type: number
-                  nota_segundo_semestre:
-                    type: number
-                  media_final:
-                    type: number
-        """
-        aluno = Aluno.query.all()
+        """ ... (sua documentação aqui) ... """
+        alunos = Aluno.query.all()
         return jsonify([{
-            'id': p.id,
-            'nome': p.nome,
-            'idade': p.idade,
-            'turma_id': p.turma_id,
-            'data_nascimento': p.data_nascimento,
-            'nota_primeiro_semestre': p.nota_primeiro_semestre,
-            'nota_segundo_semestre': p.nota_segundo_semestre,
-            'media_final': p.media_final
-        } for p in aluno])
+            'id': aluno.id,
+            'nome': aluno.nome,
+            'idade': aluno.idade,
+            'turma_id': aluno.turma_id,
+            
+            # CORREÇÃO: Converte o objeto de data para string no formato ISO (YYYY-MM-DD)
+            # O 'if' garante que não dará erro se a data for nula no banco.
+            'data_nascimento': aluno.data_nascimento.isoformat() if aluno.data_nascimento else None,
+            
+            'nota_primeiro_semestre': aluno.nota_primeiro_semestre,
+            'nota_segundo_semestre': aluno.nota_segundo_semestre,
+            'media_final': aluno.media_final
+        } for aluno in alunos])
 
     @staticmethod
     def criar():
-        """
-        Cria um novo aluno.
-        ---
-        tags:
-          - Aluno
-        parameters:
-          - name: body
-            in: body
-            required: true
-            schema:
-              type: object
-              properties:
-                nome:
-                  type: string
-                  description: Nome do aluno.
-                idade:
-                  type: integer
-                  description: Idade do aluno.
-                turma_id:
-                  type: integer
-                  description: ID da turma do aluno.
-                data_nascimento:
-                  type: string
-                  format: date
-                  description: Data de nascimento do aluno (YYYY-MM-DD).
-                nota_primeiro_semestre:
-                  type: number
-                  description: Nota do primeiro semestre.
-                nota_segundo_semestre:
-                  type: number
-                  description: Nota do segundo semestre.
-                media_final:
-                  type: number
-                  description: Média final do aluno.
-              example:
-                nome: "João Silva"
-                idade: 18
-                turma_id: 1
-                data_nascimento: "2007-05-15"
-                nota_primeiro_semestre: 8.5
-                nota_segundo_semestre: 9.0
-                media_final: 8.75
-        responses:
-          200:
-            description: Aluno adicionado com sucesso.
-            schema:
-              type: object
-              properties:
-                mensagem:
-                  type: string
-        """
+        """ ... (sua documentação aqui) ... """
         data = request.get_json()
+        
+        # CORREÇÃO: Faltava esta linha para criar a variável convertendo a string em objeto de data.
+        data_nascimento_obj = datetime.strptime(data['data_nascimento'], '%Y-%m-%d').date()
+
         novo = Aluno(
             nome=data['nome'],
             idade=data['idade'],
             turma_id=data['turma_id'],
-            data_nascimento=data['data_nascimento'],
+            data_nascimento=data_nascimento_obj, # Agora a variável existe e tem o tipo certo.
             nota_primeiro_semestre=data['nota_primeiro_semestre'],
             nota_segundo_semestre=data['nota_segundo_semestre'],
             media_final=data['media_final']
@@ -119,83 +47,30 @@ class AlunoController:
 
     @staticmethod
     def atualizar(id):
-        """
-        Atualiza um aluno existente pelo ID.
-        ---
-        tags:
-          - Aluno
-        parameters:
-          - name: id
-            in: path
-            type: integer
-            required: true
-            description: ID do aluno a ser atualizado.
-          - name: body
-            in: body
-            required: true
-            schema:
-              type: object
-              properties:
-                nome:
-                  type: string
-                idade:
-                  type: integer
-                turma_id:
-                  type: integer
-                data_nascimento:
-                  type: string
-                  format: date
-                nota_primeiro_semestre:
-                  type: number
-                nota_segundo_semestre:
-                  type: number
-                media_final:
-                  type: number
-        responses:
-          200:
-            description: Aluno atualizado com sucesso.
-          404:
-            description: Aluno não encontrado.
-        """
-        aluno = Aluno.query.get_or_404(id=id)
+        """ ... (sua documentação aqui) ... """
+        aluno = Aluno.query.get_or_404(id) # O 'id=' não é necessário aqui
         data = request.get_json()
 
         aluno.nome = data.get('nome', aluno.nome)
         aluno.idade = data.get('idade', aluno.idade)
         aluno.turma_id = data.get('turma_id', aluno.turma_id)
-        aluno.data_nascimento = data.get('data_nascimento', aluno.data_nascimento)
+        
+        # CORREÇÃO: Verifica se a data foi enviada e a converte antes de atribuir.
+        if 'data_nascimento' in data and data['data_nascimento']:
+            aluno.data_nascimento = datetime.strptime(data['data_nascimento'], '%Y-%m-%d').date()
+
         aluno.nota_primeiro_semestre = data.get('nota_primeiro_semestre', aluno.nota_primeiro_semestre)
         aluno.nota_segundo_semestre = data.get('nota_segundo_semestre', aluno.nota_segundo_semestre)
         aluno.media_final = data.get('media_final', aluno.media_final)
 
         db.session.commit()
-        return jsonify({"mensagem": "Aluno adicionado com sucesso !"})
+        # CORREÇÃO: Mensagem de sucesso deve ser de atualização.
+        return jsonify({"mensagem": "Aluno atualizado com sucesso !"})
 
     @staticmethod
     def deletar(id):
-        """
-        Deleta um aluno pelo ID.
-        ---
-        tags:
-          - Aluno
-        parameters:
-          - name: id
-            in: path
-            type: integer
-            required: true
-            description: ID do aluno a ser deletado.
-        responses:
-          200:
-            description: Aluno removido com sucesso.
-            schema:
-              type: object
-              properties:
-                mensagem:
-                  type: string
-          404:
-            description: Aluno não encontrado.
-        """
-        aluno = Aluno.query.get_or_404(id=id)
+        """ ... (sua documentação aqui) ... """
+        aluno = Aluno.query.get_or_404(id) # O 'id=' não é necessário aqui
         db.session.delete(aluno)
         db.session.commit()
         return jsonify({"mensagem": 'Aluno removido com sucesso !'})
