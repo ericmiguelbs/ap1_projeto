@@ -1,104 +1,240 @@
-# Projeto API Escolar
+# Sistema de Gerenciamento Escolar
 
-API para gerenciamento de alunos, professores e turmas.
+API RESTful para gerenciamento de **alunos**, **professores** e **turmas**.
+
+---
 
 ## Índice
 
-- [Configuração](#configuração)
-- [Endpoints](#endpoints)
-  - [Alunos](#alunos)
-  - [Professores](#professores)
-  - [Turmas](#turmas)
+- [Controllers](#controllers)
+  - [AlunoController](#alunocontroller)
+  - [ProfessorController](#professorcontroller)
+  - [TurmaController](#turmacontroller)
 - [Como Usar](#como-usar)
 - [Contribuição](#contribuição)
 
 ---
 
-## Configuração
+## Controllers
 
-- O arquivo `Config` define as configurações do Flask e do banco de dados SQLite.
-- O projeto utiliza Docker para facilitar a execução e isolamento do ambiente.
-- As dependências estão listadas em `requirements.txt`.
+### AlunoController
+
+Controlador responsável pelo gerenciamento dos alunos.
+
+#### `listar()`
+- **Método HTTP:** GET  
+- **Endpoint:** `/lista_aluno`  
+- **Descrição:** Retorna todos os alunos cadastrados.  
+- **Resposta 200:**  
+  ```json
+  [
+    {
+      "id": 1,
+      "nome": "João Silva",
+      "idade": 18,
+      "turma_id": 1,
+      "data_nascimento": "2007-05-15",
+      "nota_primeiro_semestre": 8.5,
+      "nota_segundo_semestre": 9.0,
+      "media_final": 8.75
+    }
+  ]
+  ```
+
+#### `criar()`
+- **Método HTTP:** POST  
+- **Endpoint:** `/criar_aluno`  
+- **Descrição:** Cria um novo aluno.  
+- **Body (JSON):**
+  ```json
+  {
+    "nome": "João Silva",
+    "idade": 18,
+    "turma_id": 1,
+    "data_nascimento": "2007-05-15",
+    "nota_primeiro_semestre": 8.5,
+    "nota_segundo_semestre": 9.0,
+    "media_final": 8.75
+  }
+  ```
+- **Resposta 201:**  
+  ```json
+  { "mensagem": "Aluno adicionado com sucesso!" }
+  ```
+- **Resposta 400:**  
+  ```json
+  { "erro": "Dados inválidos ou faltando." }
+  ```
+
+#### `atualizar(id)`
+- **Método HTTP:** PUT  
+- **Endpoint:** `/atualiza_aluno/<int:id>`  
+- **Descrição:** Atualiza um aluno existente.  
+- **Body (JSON):**
+  ```json
+  { "nome": "Maria Souza", "nota_primeiro_semestre": 9.0 }
+  ```
+- **Resposta 200:**  
+  ```json
+  { "mensagem": "Aluno atualizado com sucesso!" }
+  ```
+- **Resposta 404:**  
+  ```json
+  { "erro": "Aluno não encontrado." }
+  ```
+
+#### `deletar(id)`
+- **Método HTTP:** DELETE  
+- **Endpoint:** `/deleta_aluno/<int:id>`  
+- **Descrição:** Remove um aluno.  
+- **Resposta 200:**  
+  ```json
+  { "mensagem": "Aluno removido com sucesso!" }
+  ```
+- **Resposta 404:**  
+  ```json
+  { "erro": "Aluno não encontrado." }
+  ```
 
 ---
 
-## Endpoints
+### ProfessorController
 
-### Alunos
+Controlador responsável pelo gerenciamento dos professores.
 
-- **`GET /lista_aluno`**  
-  Lista todos os alunos cadastrados.
-  - **Retorno:** JSON com a lista de alunos.
+#### `listar()`
+- **Método HTTP:** GET  
+- **Endpoint:** `/lista_professores`  
+- **Descrição:** Retorna todos os professores cadastrados.  
+- **Resposta 200:**  
+  ```json
+  [
+    {
+      "id": 1,
+      "nome": "Ana Martins",
+      "idade": 45,
+      "materia": "Matemática",
+      "observacoes": "Professora experiente"
+    }
+  ]
+  ```
 
-- **`POST /criar_aluno`**  
-  Cria um novo aluno.
-  - **Body:** JSON com os dados do aluno.
-  - **Retorno:** JSON com o aluno criado.
+#### `criar()`
+- **Método HTTP:** POST  
+- **Endpoint:** `/criar_professor`  
+- **Descrição:** Cria um novo professor.  
+- **Body (JSON):**
+  ```json
+  {
+    "nome": "Ana Martins",
+    "idade": 45,
+    "materia": "Matemática",
+    "observacoes": "Professora experiente"
+  }
+  ```
+- **Resposta 201:**  
+  ```json
+  { "mensagem": "Professor criado com sucesso!" }
+  ```
 
-- **`PUT /atualiza_aluno/<int:id>`**  
-  Atualiza os dados de um aluno pelo ID.
-  - **Parâmetros:**  
-    - `id` (int): ID do aluno a ser atualizado.
-  - **Body:** JSON com os dados atualizados.
-  - **Retorno:** JSON com o aluno atualizado.
+#### `atualizar(id)`
+- **Método HTTP:** PUT  
+- **Endpoint:** `/atualiza_professor/<int:id>`  
+- **Descrição:** Atualiza um professor existente.  
+- **Body (JSON):**
+  ```json
+  { "materia": "Física" }
+  ```
+- **Resposta 200:**  
+  ```json
+  { "mensagem": "Professor atualizado com sucesso!" }
+  ```
+- **Resposta 404:**  
+  ```json
+  { "erro": "Professor não encontrado." }
+  ```
 
-- **`DELETE /deleta_aluno/<int:id>`**  
-  Remove um aluno pelo ID.
-  - **Parâmetros:**  
-    - `id` (int): ID do aluno a ser removido.
-  - **Retorno:** Mensagem de sucesso ou erro.
+#### `deletar(id)`
+- **Método HTTP:** DELETE  
+- **Endpoint:** `/deleta_professor/<int:id>`  
+- **Descrição:** Remove um professor.  
+- **Resposta 200:**  
+  ```json
+  { "mensagem": "Professor deletado com sucesso!" }
+  ```
+- **Resposta 404:**  
+  ```json
+  { "erro": "Professor não encontrado." }
+  ```
 
 ---
 
-### Professores
+### TurmaController
 
-- **`GET /lista_professor`**  
-  Lista todos os professores cadastrados.
-  - **Retorno:** JSON com a lista de professores.
+Controlador responsável pelo gerenciamento das turmas.
 
-- **`POST /adiciona_professor`**  
-  Adiciona um novo professor.
-  - **Body:** JSON com os dados do professor.
-  - **Retorno:** JSON com o professor criado.
+#### `listar()`
+- **Método HTTP:** GET  
+- **Endpoint:** `/lista_turmas`  
+- **Descrição:** Retorna todas as turmas cadastradas.  
+- **Resposta 200:**  
+  ```json
+  [
+    {
+      "id": 1,
+      "descricao": "Turma de T.I.",
+      "professor_id": 1,
+      "ativo": true
+    }
+  ]
+  ```
 
-- **`PUT /atualiza_professor/<int:id>`**  
-  Atualiza os dados de um professor pelo ID.
-  - **Parâmetros:**  
-    - `id` (int): ID do professor a ser atualizado.
-  - **Body:** JSON com os dados atualizados.
-  - **Retorno:** JSON com o professor atualizado.
+#### `criar()`
+- **Método HTTP:** POST  
+- **Endpoint:** `/cria_turmas`  
+- **Descrição:** Cria uma nova turma.  
+- **Body (JSON):**
+  ```json
+  {
+    "descricao": "Turma de T.I.",
+    "professor_id": 1,
+    "ativo": true
+  }
+  ```
+- **Resposta 200:**  
+  ```json
+  { "mensagem": "Turma criada com sucesso!" }
+  ```
 
-- **`DELETE /deleta_professor/<int:id>`**  
-  Remove um professor pelo ID.
-  - **Parâmetros:**  
-    - `id` (int): ID do professor a ser removido.
-  - **Retorno:** Mensagem de sucesso ou erro.
+#### `atualizar(id)`
+- **Método HTTP:** PUT  
+- **Endpoint:** `/atualiza_turmas/<int:id>`  
+- **Descrição:** Atualiza uma turma existente.  
+- **Body (JSON):**
+  ```json
+  { "descricao": "Turma de Robótica", "ativo": false }
+  ```
+- **Resposta 200:**  
+  ```json
+  { "mensagem": "Turma atualizada com sucesso!" }
+  ```
+- **Resposta 404:**  
+  ```json
+  { "erro": "Turma não encontrada." }
+  ```
 
----
-
-### Turmas
-
-- **`GET /lista_turmas`**  
-  Lista todas as turmas cadastradas.
-  - **Retorno:** JSON com a lista de turmas.
-
-- **`POST /cria_turmas`**  
-  Cria uma nova turma.
-  - **Body:** JSON com os dados da turma.
-  - **Retorno:** JSON com a turma criada.
-
-- **`PUT /atualiza_turmas/<int:id>`**  
-  Atualiza os dados de uma turma pelo ID.
-  - **Parâmetros:**  
-    - `id` (int): ID da turma a ser atualizada.
-  - **Body:** JSON com os dados atualizados.
-  - **Retorno:** JSON com a turma atualizada.
-
-- **`DELETE /deleta_turmas/<int:id>`**  
-  Remove uma turma pelo ID.
-  - **Parâmetros:**  
-    - `id` (int): ID da turma a ser removida.
-  - **Retorno:** Mensagem de sucesso ou erro.
+#### `deletar(id)`
+- **Método HTTP:** DELETE  
+- **Endpoint:** `/deleta_turmas/<int:id>`  
+- **Descrição:** Remove uma turma.  
+- **Resposta 200:**  
+  ```json
+  { "mensagem": "Turma deletada com sucesso!" }
+  ```
+- **Resposta 404:**  
+  ```json
+  { "erro": "Turma não encontrada." }
+  ```
 
 ---
 
@@ -107,3 +243,9 @@ API para gerenciamento de alunos, professores e turmas.
 1. Instale as dependências:
    ```bash
    pip install -r requirements.txt
+   ```
+
+2. Construa a imagem de acordo com o `dockerfile`:
+   ```bash
+   docker-compose up --build
+   ```
