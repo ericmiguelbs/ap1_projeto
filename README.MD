@@ -249,3 +249,7 @@ Controlador responsável pelo gerenciamento das turmas.
    ```bash
    docker-compose up --build
    ```
+
+
+nomes: Nicolas Lopes Miranda, Eric Miguel
+RA: 2403929, 2402345
