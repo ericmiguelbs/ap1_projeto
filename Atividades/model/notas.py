@@ -6,7 +6,8 @@ class Notas(db.Model):
     nota = db.Column(db.Float, nullable=False)
     id_aluno = db.Column(db.Integer, nullable=False)
     #Relacionamento com Atividade
-    id_atividade = db.relationship('Atividade', backref='notas')
+    id_atividade = db.Column(db.Integer, db.ForeignKey('atividades.id'), nullable=False)
+    atividade = db.relationship('Atividade', backref='notas')
 
     def __repr__(self):
-        return f"<Notas {self.id}>"
+        return f"<Reserva {self.id}>"
