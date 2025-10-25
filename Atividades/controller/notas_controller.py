@@ -45,3 +45,37 @@ class notasController:
         except (KeyError, TypeError):
           return jsonify({'erro': 'Dados inválidos ou faltando.'}), 400
         
+    @staticmethod
+    def atualizar(id):
+       nota = Notas.query.get_or_404(id)
+       data = request.get_json()
+       try:
+            response = requests.get(url)
+            response.raise_for_status()
+            alunos = response.json()
+            recebido = False
+            for i in alunos:
+               if i.get('id') == data['id_aluno']:
+                  recebido = True
+                  break
+            if not recebido:
+              return jsonify({'erro': f'O aluno com ID {data["id_aluno"]} não existe.'}), 404
+        
+            nota.nota = data.get('nota', nota.nota)
+            nota.id_aluno = data.get('id_aluno', nota.id_aluno)
+            nota.id_atividade = data.get('id_atividade', nota.id_atividade)
+
+            db.session.commit()
+            return jsonify({'mensagem':'Nota atualizada com sucesso!'})
+       except (KeyError, TypeError):
+            return jsonify({'erro': 'Dados inválidos ou faltando.'}), 400
+          
+    @staticmethod
+    def deletar(id):
+       notas = Notas.query.get_or_404(id)
+       db.session.delete(notas)
+       db.session.commit()
+       return jsonify({'mensagem':'Nota deletada com sucesso!'})
+
+           
+        
