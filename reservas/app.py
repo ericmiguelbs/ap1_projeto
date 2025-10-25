@@ -18,5 +18,9 @@ app.add_url_rule('/criar_reserva', view_func=reservaController.criar,methods = [
 
 app.add_url_rule('/lista_reserva', view_func = reservaController.listar,methods = ['GET'],endpoint = 'listar_reserva')
 
+app.add_url_rule('/atualiza_reserva/<int:id>', view_func=reservaController.atualizar,methods = ['PUT'],endpoint= 'atualiza_reserva')
+
+app.add_url_rule('/deletar_reserva/<int:id>', view_func=reservaController.deletar,methods = ['DELETE'],endpoint= 'deletar_reserva')
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
