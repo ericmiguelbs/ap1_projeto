@@ -4,7 +4,7 @@ from model.atividade import Atividade
 import requests
 from datetime import date
 
-url_professor = 'http://192.168.15.5:5000/listar_professores'
+url_professor = 'http://192.168.15.5:5000/lista_professor'
 url_turma = 'http://192.168.15.5:5000/lista_turmas'
 
 class atividadeController:
@@ -57,7 +57,7 @@ class atividadeController:
                 nome_atividade = data['nome_atividade'],
                 descricao = data['descricao'],
                 peso_porcento = data['peso_porcento'],
-                data_entrega = data.get('data_entrega', date.today()),
+                data_entrega = date.fromisoformat(data['data_entrega']),
                 id_turma = data['id_turma'],
                 id_professor = data['id_professor']
             )
@@ -107,6 +107,7 @@ class atividadeController:
             atividades.peso_porcento = data.get('peso_porcento', atividades.peso_porcento)
             atividades.id_turma = data.get('data_entrega', atividades.id_turma)
             atividades.id_professor = data.get('id_professor', atividades.id_professor)
+            atividades.data_entrega = date.fromisoformat(data['data_entrega'])
 
             db.session.commit()
             return jsonify({'mensagem': 'Atividade atualizado com sucesso!'})
