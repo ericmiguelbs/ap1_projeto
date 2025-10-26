@@ -69,7 +69,7 @@ class reservaController:
             reservas = response_reserva.json()
             recebido_reserva = False
             for r in reservas:
-               if r.get('id') == data['id']:
+               if r.get('id') == id:
                 recebido_reserva = True
                 break
             if not recebido_reserva:

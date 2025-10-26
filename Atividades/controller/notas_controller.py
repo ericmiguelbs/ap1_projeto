@@ -24,56 +24,73 @@ class notasController:
     def criar():
         data = request.get_json()
         try:
+            id_aluno_enviado = data.get('id_aluno')
+            nota_enviada = data.get('nota')
+            id_atividade_enviada = data.get('id_atividade')
+
+            if not id_aluno_enviado or nota_enviada is None or not id_atividade_enviada:
+                return jsonify({'erro': 'Dados inválidos ou faltando (nota, id_aluno, id_atividade).'}), 400
+
             response = requests.get(url)
             response.raise_for_status()
             alunos = response.json()
             recebido = False
             for i in alunos:
-               if i.get('id') == data['id_aluno']:
-                  recebido = True
-                  break
+                if str(i.get('id')) == str(id_aluno_enviado):
+                    recebido = True
+                    break
             if not recebido:
-              return jsonify({'erro': f'O aluno com ID {data["id_aluno"]} não existe.'}), 404
+                return jsonify({'erro': f'O aluno com ID {id_aluno_enviado} não existe.'}), 404
+            
             nota = Notas(
-                nota = data['nota'],
-                id_aluno = data['id_aluno'],
-                id_atividade = data['id_atividade']
+                nota = nota_enviada,
+                id_aluno = id_aluno_enviado,
+                id_atividade = id_atividade_enviada
             )
             db.session.add(nota)
             db.session.commit()
             return jsonify({'mensagem': 'nota adicionada com sucesso!'}), 201
+        
         except (KeyError, TypeError):
-          return jsonify({'erro': 'Dados inválidos ou faltando.'}), 400
+            return jsonify({'erro': 'Dados inválidos ou faltando.'}), 400
+        except requests.exceptions.RequestException as e:
+            return jsonify({'erro': f'Falha ao consultar alunos: {str(e)}'}), 500
         
     @staticmethod
     def atualizar(id):
-       nota = Notas.query.get_or_404(id)
-       data = request.get_json()
-       try:
-            response = requests.get(url)
-            response.raise_for_status()
-            alunos = response.json()
-            recebido = False
-            for i in alunos:
-               if i.get('id') == data['id_aluno']:
-                  recebido = True
-                  break
-            if not recebido:
-              return jsonify({'erro': f'O aluno com ID {data["id_aluno"]} não existe.'}), 404
-        
+        nota = Notas.query.get_or_404(id)
+        data = request.get_json()
+        try:
+            if 'id_aluno' in data:
+                id_aluno_novo = data.get('id_aluno')
+                
+                response = requests.get(url)
+                response.raise_for_status()
+                alunos = response.json()
+                recebido = False
+                for i in alunos:
+                    if str(i.get('id')) == str(id_aluno_novo):
+                        recebido = True
+                        break
+                if not recebido:
+                    return jsonify({'erro': f'O aluno com ID {id_aluno_novo} não existe.'}), 404
+            
             nota.nota = data.get('nota', nota.nota)
             nota.id_aluno = data.get('id_aluno', nota.id_aluno)
             nota.id_atividade = data.get('id_atividade', nota.id_atividade)
 
             db.session.commit()
             return jsonify({'mensagem':'Nota atualizada com sucesso!'})
-       except (KeyError, TypeError):
+        
+        except (KeyError, TypeError):
             return jsonify({'erro': 'Dados inválidos ou faltando.'}), 400
-          
+        except requests.exceptions.RequestException as e:
+            return jsonify({'erro': f'Falha ao consultar alunos: {str(e)}'}), 500
+                
     @staticmethod
     def deletar(id):
-       notas = Notas.query.get_or_404(id)
-       db.session.delete(notas)
+       nota = Notas.query.get_or_404(id)
+       db.session.delete(nota)
        db.session.commit()
        return jsonify({'mensagem':'Nota deletada com sucesso!'})
 
