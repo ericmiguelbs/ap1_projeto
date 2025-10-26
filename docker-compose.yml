@@ -1,15 +1,62 @@
 # docker-compose.yml CORRIGIDO
 services:
-  api:
-    build: .
-    container_name: api_projeto
+  
+  servico-gerenciamento:
+    build:
+      context: ./gerenciamento
+    container_name: api_gerenciamento
     ports:
       - "5000:5000"
     volumes:
-      - .:/app
-      - ./instance:/app/instance
+      - ./gerenciamento:/app
+      - ./gerenciamento/instance:/app/instance
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
       # FLASK_RUN_HOST é definido pelo CMD do flask, não precisa mais aqui
       # mas o comando flask run --host=0.0.0.0 que é usado no CMD vai fazer o trabalho
+    networks:
+     - app_network
+    restart: unless-stopped
+  
+  servico-reserva:
+    build:
+      context: ./reservas
+    container_name: api_reserva
+    ports:
+    - "5001:5001"
+    volumes:
+    - ./reservas:/app
+    - ./gerenciamento/instance:/app/instance
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+
+    networks:
+      - app_network
+    depends_on:
+      - servico-gerenciamento
+    restart: unless-stopped
+  
+  servico-atividade:
+    build:
+      context: ./atividades
+    container_name: api_atividades
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./atividades:/app
+      - ./atividades/instance:/app/instance
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+
+    networks:
+      - app_network
+    depends_on:
+      - servico-gerenciamento
+    restart: unless-stopped
+
+networks:
+  app_network:
+    driver: bridge

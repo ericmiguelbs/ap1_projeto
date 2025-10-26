@@ -35,7 +35,7 @@ class reservaController:
                   recebido = True
                   break
             if not recebido:
-              return jsonify({'erro': f'A turma com ID {'id'} não existe.'}), 404
+              return jsonify({'erro': f'A turma com ID {id} não existe.'}), 404
             reserva = Reserva(
                 num_sala = data['num_sala'],
                 lab = data['lab'],
@@ -63,7 +63,7 @@ class reservaController:
                   recebido = True
                   break
             if not recebido:
-              return jsonify({'erro': f'Não foi possível atualizar a reserva, a turma com ID {'id'} não existe.'}), 404
+              return jsonify({'erro': f'Não foi possível atualizar a reserva, a turma com ID {id} não existe.'}), 404
             response_reserva = requests.get(url_reserva)
             response_reserva.raise_for_status()
             reservas = response_reserva.json()
@@ -73,7 +73,7 @@ class reservaController:
                 recebido_reserva = True
                 break
             if not recebido_reserva:
-               return jsonify({'erro': f'Não foi possível atualizar a reserva, o ID {'id'} não existe.'}), 404
+               return jsonify({'erro': f'Não foi possível atualizar a reserva, o ID {id} não existe.'}), 404
                
             reserva.num_sala = data.get('num_sala', reserva.num_sala)
             reserva.lab = data.get('lab', reserva.lab)

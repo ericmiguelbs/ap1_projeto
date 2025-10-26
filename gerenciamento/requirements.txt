@@ -19,3 +19,4 @@ typing_extensions==4.14.1
 
 # Biblioteca para documentação de API (Swagger UI)
 flasgger==0.9.7.1
+
