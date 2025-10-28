@@ -3,10 +3,13 @@ from model.db import db
 from model.reservas import Reserva
 import requests
 from datetime import date
-# A inicialização do Swagger(app) deve estar no seu app.py
+from requests.exceptions import RequestException, HTTPError, JSONDecodeError, ConnectionError
 
-url = 'http://192.168.15.5:5000/lista_turmas'
-url_reserva = 'http://192.168.15.5:5001/lista_reserva'
+# URLs dos serviços externos (CORRIGIDOS para usar os IPs 172.21.0.x da imagem)
+# O serviço de Turmas (api_gerenciamento) está em 172.21.0.2:5000
+url = 'http://api_gerenciamento:5000/lista_turmas'
+# O serviço de Reserva externa (api_reserva) está em 172.21.0.4:5001
+url_reserva = 'http://api_reserva:5001/lista_reserva'
 
 class reservaController:
 
@@ -14,226 +17,165 @@ class reservaController:
     def listar():
         """
         Lista todas as reservas de salas/laboratórios.
-        ---
-        tags:
-          - Reservas
-        responses:
-          200:
-            description: Uma lista de todas as reservas.
-            schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: integer
-                  num_sala:
-                    type: integer
-                  lab:
-                    type: boolean
-                  data:
-                    type: string
-                    format: date
-                  id_turma:
-                    type: integer
         """
-        reservas = Reserva.query.all()
-        return jsonify([
-            {
-                'id': t.id,
-                'num_sala': t.num_sala,
-                'lab': t.lab,
-                'data':t.data.isoformat(), # Correto, já estava assim
-                'id_turma': t.id_turma
-            } for t in reservas
-        ])
+        try:
+            reservas = Reserva.query.all()
+            return jsonify([
+                {
+                    'id': t.id,
+                    'num_sala': t.num_sala,
+                    'lab': t.lab,
+                    'data': t.data.isoformat(),
+                    'id_turma': t.id_turma
+                } for t in reservas
+            ])
+        except Exception as e:
+            return jsonify({'erro': f'Falha ao listar reservas: Erro interno do servidor local. Detalhes: {str(e)}'}), 500
 
     @staticmethod
     def criar():
         """
         Cria uma nova reserva para uma turma.
-        Valida se o 'id_turma' existe consultando um serviço externo.
-        ---
-        tags:
-          - Reservas
-        parameters:
-          - name: body
-            in: body
-            required: true
-            schema:
-              type: object
-              properties:
-                num_sala:
-                  type: integer
-                  description: Número da sala ou laboratório.
-                lab:
-                  type: boolean
-                  description: 'true' se for um laboratório, 'false' se for sala comum.
-                data:
-                  type: string
-                  format: date
-                  description: Data da reserva (AAAA-MM-DD).
-                id_turma:
-                  type: integer
-                  description: ID da turma (será validado externamente).
-              required:
-                - num_sala
-                - lab
-                - data
-                - id_turma
-        responses:
-          201:
-            description: Reserva criada com sucesso.
-          400:
-            description: Dados inválidos ou faltando no JSON (verifique formato da data AAAA-MM-DD).
-          404:
-            description: A 'id_turma' enviada não foi encontrada no serviço externo.
-          500:
-            description: Falha ao consultar o serviço externo de turmas.
         """
         data = request.get_json()
+        
+        # 1. TRATAMENTO DE ERROS DE DADOS DE ENTRADA (KeyError, ValueError)
         try:
-            # Valida Turma
-            response = requests.get(url)
-            response.raise_for_status()
+            # Tenta extrair e converter dados. Se faltar chave, dispara KeyError.
+            # Se 'data' estiver em formato errado, dispara ValueError do fromisoformat.
+            reserva_data = {
+                'num_sala': data['num_sala'],
+                'lab': data['lab'],
+                'data': date.fromisoformat(data['data']),
+                'id_turma': data['id_turma']
+            }
+        except (KeyError, TypeError, ValueError):
+            # Captura falha no JSON de entrada ou formato de data incorreto
+            return jsonify({'erro': 'Dados inválidos ou faltando (verifique a presença de num_sala, lab, data, id_turma e o formato da data AAAA-MM-DD).'}), 400
+
+        # 2. VALIDAÇÃO EXTERNA (Aonde ocorre o 500 quando falha)
+        try:
+            # Consulta serviço externo de turmas
+            response = requests.get(url, timeout=5)
+            response.raise_for_status() 
+            
+            # Tenta decodificar o JSON
             turmas = response.json()
+            
+            id_turma_enviada = reserva_data['id_turma']
             recebido = False
-            id_turma_enviada = data.get('id_turma') # Usando .get para segurança
             for i in turmas:
-               # Comparando como string para segurança, assim como nos outros controllers
-               if str(i.get('id')) == str(id_turma_enviada): 
+                if str(i.get('id')) == str(id_turma_enviada): 
                     recebido = True
                     break
+            
             if not recebido:
-                 # Corrigindo o bug (estava {id} e não data['id_turma'])
                 return jsonify({'erro': f'A turma com ID {id_turma_enviada} não existe.'}), 404
             
+            # 3. CRIAÇÃO NO BANCO DE DADOS LOCAL
             reserva = Reserva(
-                num_sala = data['num_sala'],
-                lab = data['lab'],
-                data= date.fromisoformat(data['data']),
-                id_turma = data['id_turma']
+                num_sala = reserva_data['num_sala'],
+                lab = reserva_data['lab'],
+                data = reserva_data['data'],
+                id_turma = reserva_data['id_turma']
             )
             db.session.add(reserva)
             db.session.commit()
             return jsonify({'mensagem': 'reserva adicionada com sucesso!'}), 201
         
-        except (KeyError, TypeError, ValueError): # ValueError para o fromisoformat
-            return jsonify({'erro': 'Dados inválidos ou faltando (verifique o formato da data AAAA-MM-DD).'}), 400
-        # Adicionando a captura de erro de request, que estava faltando
-        except requests.exceptions.RequestException as e:
-            return jsonify({'erro': f'Falha ao consultar turmas: {str(e)}'}), 500
+        except JSONDecodeError:
+            # Captura se o serviço externo retornar corpo inválido (HTML, string, etc.)
+            status = response.status_code if 'response' in locals() else 'N/A'
+            return jsonify({'erro': f'Falha no serviço de turmas. O servidor {url} retornou o status {status}, mas o conteúdo não é JSON válido.'}), 500
         
+        except HTTPError as e:
+            # Captura se o serviço externo retornar um erro HTTP (4xx ou 5xx como 503)
+            return jsonify({'erro': f'Falha na validação da turma: O serviço externo retornou um erro HTTP {e.response.status_code}.'}), 500
+        
+        except RequestException as e:
+            # Captura erros de conexão (timeout, Connection refused, DNS, etc.)
+            return jsonify({'erro': f'Falha de conexão ao consultar turmas: {str(e)}'}), 500
+        
+        except Exception as e:
+            # Última linha de defesa para erros inesperados (ex: falha no DB local)
+            return jsonify({'erro': f'Erro interno desconhecido ao tentar criar a reserva: {str(e)}'}), 500
+
 
     @staticmethod
     def atualizar(id):
         """
         Atualiza uma reserva existente pelo seu ID.
-        Valida 'id_turma' e 'id' da reserva em serviços externos antes de atualizar.
-        ---
-        tags:
-          - Reservas
-        parameters:
-          - name: id
-            in: path
-            type: integer
-            required: true
-            description: O ID da reserva a ser atualizada.
-          - name: body
-            in: body
-            required: true
-            schema:
-              type: object
-              description: Campos para atualizar.
-              properties:
-                num_sala:
-                  type: integer
-                lab:
-                  type: boolean
-                data:
-                  type: string
-                  format: date
-                  description: Data no formato AAAA-MM-DD (Obrigatório para atualizar).
-                id_turma:
-                  type: integer
-              required:
-                - data # O seu código (sem .get) torna este campo obrigatório
-        responses:
-          200:
-            description: Reserva atualizada com sucesso.
-          400:
-            description: Dados inválidos (ex: 'data' faltando ou formato incorreto).
-          404:
-            description: A reserva (ID) não foi encontrada, ou a 'id_turma' não foi encontrada, ou a reserva não existe no serviço externo.
-          500:
-            description: Falha ao consultar os serviços externos.
         """
         reserva = Reserva.query.get_or_404(id)
         data = request.get_json()
+        
         try:
-            # Validação 1: Turma (Serviço Externo)
-            response = requests.get(url)
-            response.raise_for_status()
-            turmas = response.json()
-            recebido = False
-            id_turma_enviada = data.get('id_turma', reserva.id_turma) # Pega a nova ou mantém a antiga
+            # 1. Validação da Turma (Serviço Externo)
+            # USANDO IP CORRIGIDO
+            response_turma = requests.get(url, timeout=5)
+            response_turma.raise_for_status()
+            turmas = response_turma.json()
+            
+            id_turma_enviada = data.get('id_turma', reserva.id_turma) 
+            recebido_turma = False
             for i in turmas:
                 if str(i.get('id')) == str(id_turma_enviada):
-                    recebido = True
+                    recebido_turma = True
                     break
-            if not recebido:
-                # Corrigindo o bug (estava {id} e não o id da turma)
+            
+            if not recebido_turma:
                 return jsonify({'erro': f'Não foi possível atualizar a reserva, a turma com ID {id_turma_enviada} não existe.'}), 404
             
-            # Validação 2: Reserva (Serviço Externo) - Lógica estranha, mas documentando como está
-            response_reserva = requests.get(url_reserva)
+            # 2. Validação da Reserva (Serviço Externo)
+            # USANDO IP CORRIGIDO
+            response_reserva = requests.get(url_reserva, timeout=5)
             response_reserva.raise_for_status()
             reservas = response_reserva.json()
+            
             recebido_reserva = False
             for r in reservas:
-                if r.get('id') == id: # Aqui o 'id' do path está correto
+                if r.get('id') == id:
                     recebido_reserva = True
                     break
+            
             if not recebido_reserva:
                 return jsonify({'erro': f'Não foi possível atualizar a reserva, o ID {id} não existe no serviço externo.'}), 404
                 
-            # Atualiza os campos
+            # 3. Atualiza os campos
             reserva.num_sala = data.get('num_sala', reserva.num_sala)
             reserva.lab = data.get('lab', reserva.lab)
-            # Atenção: 'data' é obrigatório no seu código, pois não usa .get()
-            reserva.data = date.fromisoformat(data['data']) 
+            
+            # Garante que 'data' é tratada corretamente, mas ainda é obrigatória
+            if 'data' in data:
+                 reserva.data = date.fromisoformat(data['data'])
+            
             reserva.id_turma = data.get('id_turma', reserva.id_turma)
             
             db.session.commit()
             return jsonify({'mensagem': 'Reserva atualizada com sucesso!'})
         
-        except (KeyError, TypeError, ValueError): # KeyError se 'data' faltar, ValueError do fromisoformat
-            return jsonify({'erro': 'Dados inválidos ou faltando (verifique se o campo "data" está presente no formato AAAA-MM-DD).'}), 400
-        # Adicionando a captura de erro de request
-        except requests.exceptions.RequestException as e:
-            return jsonify({'erro': f'Falha ao consultar serviços externos: {str(e)}'}), 500
+        except (KeyError, TypeError, ValueError) as e:
+            # Captura falha no JSON de entrada ou formato de data incorreto
+            return jsonify({'erro': f'Dados inválidos ou faltando (verifique o formato da data AAAA-MM-DD e se o JSON está completo): {str(e)}'}), 400
+        
+        except JSONDecodeError as e:
+            return jsonify({'erro': f'Falha ao processar a resposta de um serviço externo. O conteúdo retornado não é JSON válido. Detalhes: {str(e)}'}), 500
+        
+        except HTTPError as e:
+            return jsonify({'erro': f'Falha na validação: Um serviço externo retornou um erro HTTP {e.response.status_code}.'}), 500
+        
+        except RequestException as e:
+            return jsonify({'erro': f'Falha de conexão ao consultar serviços externos: {str(e)}'}), 500
             
-    # Assumindo que era para ser @staticmethod, como os outros
     @staticmethod 
     def deletar(id):
         """
         Deleta uma reserva pelo seu ID.
-        ---
-        tags:
-          - Reservas
-        parameters:
-          - name: id
-            in: path
-            type: integer
-            required: true
-            description: O ID da reserva a ser deletada.
-        responses:
-          200:
-            description: Reserva deletada com sucesso.
-          404:
-            description: A reserva com o 'id' fornecido não foi encontrada.
         """
-        reserva = Reserva.query.get_or_404(id)
-        db.session.delete(reserva)
-        db.session.commit()
-        return jsonify({'mensagem': 'Reserva deletada com sucesso!'})
+        try:
+            reserva = Reserva.query.get_or_404(id)
+            db.session.delete(reserva)
+            db.session.commit()
+            return jsonify({'mensagem': 'Reserva deletada com sucesso!'})
+        except Exception as e:
+            return jsonify({'erro': f'Falha ao deletar reserva: {str(e)}'}), 500

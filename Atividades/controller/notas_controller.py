@@ -6,7 +6,7 @@ from datetime import date
 # A importação do Swagger e a inicialização (Swagger(app))
 # devem estar no seu arquivo principal (app.py), não aqui.
 
-url = 'http://192.168.15.5:5000/lista_aluno'
+url = 'http://api_gerenciamento:5000/lista_aluno'
 
 class notasController:
 

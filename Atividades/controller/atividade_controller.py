@@ -5,8 +5,8 @@ import requests
 from datetime import date
 # Lembre-se que o Swagger(app) é inicializado no seu app.py
 
-url_professor = 'http://192.168.15.5:5000/lista_professor'
-url_turma = 'http://192.168.15.5:5000/lista_turmas'
+url_professor = 'http://api_gerenciamento:5000/lista_professor'
+url_turma = 'http://api_gerenciamento:5000/lista_turmas'
 
 class atividadeController:
 
