@@ -89,7 +89,7 @@ class reservaController:
             data:
               type: string
               format: date
-              description: Data da reserva (AAAA-MM-DD).
+              description: Data da reserva AAAA-MM-DD.
               example: "2025-10-30"
             id_turma:
               type: integer
@@ -99,11 +99,11 @@ class reservaController:
       201:
         description: Reserva criada com sucesso.
       400:
-        description: Dados inválidos ou faltando (verifique formato da data ou campos).
+        description: Dados inválidos ou faltando verifique formato da data ou campos.
       404:
-        description: A turma (id_turma) não foi encontrada no serviço externo.
+        description: A turma id_turma não foi encontrada no serviço externo.
       500:
-        description: Erro interno do servidor (falha de conexão com serviço externo, etc.).
+        description: Erro interno do servidor falha de conexão com serviço externo, etc..
     """
         data = request.get_json()
         try:
@@ -192,7 +192,7 @@ class reservaController:
       200:
         description: Reserva atualizada com sucesso.
       400:
-        description: Dados inválidos (ex: formato de data).
+        description: Dados inválidos (ex formato de data).
       404:
         description: Reserva, Turma ou ID externo não encontrado.
       500:

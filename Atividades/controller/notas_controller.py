@@ -67,7 +67,7 @@ class notasController:
                 nota:
                   type: number
                   format: float
-                  description: O valor da nota (ex: 8.5).
+                  description: O valor da nota (ex 8.5).
                 id_aluno:
                   type: integer
                   description: O ID do aluno (será validado).

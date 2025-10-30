@@ -197,7 +197,7 @@ class atividadeController:
           200:
             description: Atividade atualizada com sucesso.
           400:
-            description: Dados inválidos ou faltando (verifique o formato da data AAAA-MM-DD).
+            description: Dados inválidos ou faltando verifique o formato da data AAAA-MM-DD.
           404:
             description: A atividade (ID) não foi encontrada, ou o novo 'id_professor'/'id_turma' não existe.
           500:
