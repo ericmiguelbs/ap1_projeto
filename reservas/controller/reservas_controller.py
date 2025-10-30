@@ -14,6 +14,35 @@ class reservaController:
     def listar():
         """
         Lista todas as reservas de salas/laboratórios.
+    ---
+    tags:
+      - Reservas
+    responses:
+      200:
+        description: Uma lista de todas as reservas.
+        schema:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              num_sala:
+                type: string
+              lab:
+                type: string
+              data:
+                type: string
+                format: date
+              id_turma:
+                type: integer
+      500:
+        description: Falha ao listar reservas (Erro interno do servidor local).
+        schema:
+          type: object
+          properties:
+            erro:
+              type: string
         """
         try:
             reservas = Reserva.query.all()
@@ -32,8 +61,50 @@ class reservaController:
     @staticmethod
     def criar():
         """
-        Cria uma nova reserva para uma turma.
-        """
+    Cria uma nova reserva para uma turma.
+    Valida a existência da turma em um serviço externo antes de criar.
+    ---
+    tags:
+      - Reservas
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          id: ReservaInput
+          required:
+            - num_sala
+            - lab
+            - data
+            - id_turma
+          properties:
+            num_sala:
+              type: string
+              description: Número da sala a ser reservada.
+              example: "101A"
+            lab:
+              type: string
+              description: Nome do laboratório.
+              example: "Laboratório de Redes"
+            data:
+              type: string
+              format: date
+              description: Data da reserva (AAAA-MM-DD).
+              example: "2025-10-30"
+            id_turma:
+              type: integer
+              description: ID da turma associada.
+              example: 12
+    responses:
+      201:
+        description: Reserva criada com sucesso.
+      400:
+        description: Dados inválidos ou faltando (verifique formato da data ou campos).
+      404:
+        description: A turma (id_turma) não foi encontrada no serviço externo.
+      500:
+        description: Erro interno do servidor (falha de conexão com serviço externo, etc.).
+    """
         data = request.get_json()
         try:
             reserva_data = {
@@ -86,8 +157,47 @@ class reservaController:
     @staticmethod
     def atualizar(id):
         """
-        Atualiza uma reserva existente pelo seu ID.
-        """
+    Atualiza uma reserva existente pelo seu ID.
+    Valida a turma e a reserva em serviços externos.
+    ---
+    tags:
+      - Reservas
+    parameters:
+      - name: id
+        in: path
+        type: integer
+        required: true
+        description: O ID da reserva a ser atualizada.
+      - in: body
+        name: body
+        required: true
+        schema:
+          id: ReservaUpdateInput
+          description: Campos a serem atualizados (todos opcionais)
+          properties:
+            num_sala:
+              type: string
+              example: "102B"
+            lab:
+              type: string
+              example: "Laboratório de Hardware"
+            data:
+              type: string
+              format: date
+              example: "2025-11-15"
+            id_turma:
+              type: integer
+              example: 13
+    responses:
+      200:
+        description: Reserva atualizada com sucesso.
+      400:
+        description: Dados inválidos (ex: formato de data).
+      404:
+        description: Reserva, Turma ou ID externo não encontrado.
+      500:
+        description: Erro interno ou falha de comunicação com serviços externos.
+    """
         reserva = Reserva.query.get_or_404(id)
         data = request.get_json()
         
@@ -146,6 +256,22 @@ class reservaController:
     def deletar(id):
         """
         Deleta uma reserva pelo seu ID.
+    ---
+    tags:
+      - Reservas
+    parameters:
+      - name: id
+        in: path
+        type: integer
+        required: true
+        description: O ID da reserva a ser deletada.
+    responses:
+      200:
+        description: Reserva deletada com sucesso.
+      404:
+        description: Reserva não encontrada no banco de dados local.
+      500:
+        description: Falha ao deletar a reserva.
         """
         try:
             reserva = Reserva.query.get_or_404(id)
