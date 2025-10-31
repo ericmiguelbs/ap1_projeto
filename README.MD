@@ -25,9 +25,7 @@ API RESTful para gerenciamento de alunos, professores, turmas, atividades, notas
   - [AtividadeController](#atividadecontroller)
   - [NotasController](#notascontroller)
   - [ReservaController](#reservacontroller)
-- [Como Contribuir](#como-contribuir)
 - [Autores](#-autores)
-- [Licença](#-licença)
 
 ---
 
