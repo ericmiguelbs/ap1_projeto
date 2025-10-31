@@ -255,6 +255,28 @@ Cria um novo aluno.
 { "erro": "Dados inválidos ou faltando." }
 ```
 
+#### `PUT /atualiza_aluno/id`
+
+Atualiza aluno pelo id.
+
+```json
+[
+  {
+    "nome": "João Silva",
+    "idade": 19,
+    "turma_id": 1,
+    "data_nascimento": "2007-05-15",
+    "nota_primeiro_semestre": 8.5,
+    "nota_segundo_semestre": 9.0,
+    "media_final": 8.75
+  }
+]
+```
+#### `DELETE /deleta_aluno/id`
+
+Deleta aluno pelo id
+
+```
 ---
 
 ### 👩‍🏫 ProfessorController
