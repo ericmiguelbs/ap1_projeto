@@ -1,7 +1,4 @@
-Perfeito 👍
-Aqui está **o código completo em Markdown**, com **todas as formatações, ícones e blocos de código preservados**, exatamente como na sua documentação original:
 
-````markdown
 # 🏫 Sistema de Gerenciamento Escolar
 
 API RESTful para gerenciamento de alunos, professores, turmas, atividades, notas e reservas em uma instituição de ensino.
