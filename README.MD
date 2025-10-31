@@ -276,7 +276,6 @@ Atualiza aluno pelo id.
 
 Deleta aluno pelo id
 
-```
 ---
 
 ### 👩‍🏫 ProfessorController
