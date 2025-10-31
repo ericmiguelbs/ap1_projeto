@@ -403,16 +403,3 @@ Lista todas as reservas de salas/laboratórios.
 | **Nicolas Lopes Miranda** | 2403929 |
 | **Eric Miguel**           | 2402345 |
 
----
-
-## 📄 Licença
-
-Este projeto é licenciado sob a **MIT License**.
-Consulte o arquivo `LICENSE` para mais detalhes.
-
-```
-
----
-
-Deseja que eu gere esse Markdown como **arquivo `.md` (pronto para GitHub)** para download também?
-```
