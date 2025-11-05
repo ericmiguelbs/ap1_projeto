@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from models.db import db
 from models.aluno import Aluno
+from models.turma import Turma
 from datetime import datetime
 
 class AlunoController:
@@ -106,7 +107,11 @@ class AlunoController:
         """
         data = request.get_json()
         try:
+            turma_existente = Turma.query.get(data.get('turma_id'))
+            if not turma_existente:
+                return jsonify({'erro': f"A turma com id {data.get('turma_id')} não foi encontrado"}), 400
             data_nascimento_obj = datetime.strptime(data['data_nascimento'], '%Y-%m-%d').date()
+            
             novo = Aluno(
                 nome=data['nome'],
                 idade=data['idade'],
@@ -154,9 +159,13 @@ class AlunoController:
           404:
             description: Aluno não encontrado.
         """
-        aluno = Aluno.query.get_or_404(id)
+        aluno = Aluno.query.get(id)
+        if not aluno:
+            return jsonify({'erro': f"O aluno com id {id} não foi encontrado"}), 404
         data = request.get_json()
-
+        turma_existente = Turma.query.get(data.get('turma_id'))
+        if not turma_existente:
+            return jsonify({'erro': f"A turma com id {data['turma_id']} não foi encontrado"}), 400 
         aluno.nome = data.get('nome', aluno.nome)
         aluno.idade = data.get('idade', aluno.idade)
         aluno.turma_id = data.get('turma_id', aluno.turma_id)

@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from models.db import db
 from models.turma import Turma
+from models.professor import Professor
 
 class TurmaController:
     
@@ -74,7 +75,11 @@ class TurmaController:
                 mensagem:
                   type: string
         """
+
         data = request.get_json()
+        professor_existente = Professor.query.get(data['professor_id'])
+        if not professor_existente:
+            return jsonify({'erro': f"o professor com o id {data['professor_id']} não existe"})
         nova_turma = Turma(
             descricao=data['descricao'],
             professor_id=data['professor_id'],
@@ -117,7 +122,9 @@ class TurmaController:
         """
         turma = Turma.query.get_or_404(id)
         data = request.get_json()
-
+        professor_existente = Professor.query.get(data['professor_id'])
+        if not professor_existente:
+            return jsonify({'erro': f"O professor com o id {data['professor_id']} não foi encontrado"})
         turma.descricao = data.get('descricao', turma.descricao)
         turma.professor_id = data.get('professor_id', turma.professor_id)
         turma.ativo = data.get('ativo', turma.ativo)
